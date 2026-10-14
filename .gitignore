@@ -1,16 +1,6 @@
-# Local operating system and editor files
+node_modules
+dist
 .DS_Store
-Thumbs.db
-Desktop.ini
-.vscode/
-.idea/
-
-# Local-only logs and environment secrets
-*.log
-.env
-.env.*
-!.env.example
-
-# Python import checks
-__pycache__/
-*.pyc
+# full source database stays private (see README)
+data/perfume-database.json
+start-dupedia.bat

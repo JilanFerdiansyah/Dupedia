@@ -1,0 +1,63 @@
+
+body{margin:0;background:#FBF6E9}
+a{color:#4A3322}a:hover{color:#B8561E}
+.item{position:absolute;left:0;top:0;will-change:transform,opacity;pointer-events:none}
+.mono{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.row{display:flex;align-items:center;gap:16px;padding:9px 18px;cursor:pointer;font-family:'Rubik',sans-serif;color:#4A3322;border-top:1px solid rgba(74,51,34,.08)}
+.row:first-child{border-top:0}
+.row.on{background:#F8DF63}
+.row .th{width:56px;height:67px;flex:none;filter:drop-shadow(0 4px 6px rgba(74,51,34,.2))}
+.row .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.row .tx b{font-weight:600;font-size:19px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tx small{font-weight:500;font-size:13px;opacity:.65}
+.row .fm{display:flex;align-items:center;gap:6px;font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;flex:none}
+.row .fm i{width:8px;height:8px;border-radius:50%}
+@keyframes spin{to{transform:rotate(360deg)}}
+.grain{position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .29 0 0 0 0 .2 0 0 0 0 .13 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url%28%23n%29'/%3E%3C/svg%3E");mix-blend-mode:multiply;opacity:.55}
+.spin{animation:spin 22s linear infinite}
+.tape{position:absolute;top:-9px;left:50%;width:50px;height:17px;margin-left:-25px;background:rgba(248,223,99,.82);box-shadow:0 1px 2px rgba(74,51,34,.18);transform:rotate(-5deg)}
+#q3::placeholder{color:rgba(74,51,34,.42)}
+
+html,body{margin:0;height:100%;background:#FBF6E9;overflow:hidden;-webkit-font-smoothing:antialiased}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#app-root{width:1440px;height:900px;flex:none;transform-origin:center center;opacity:0}
+body.ready #app-root{opacity:1}
+#boot{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#FBF6E9;font-family:Rubik,system-ui,sans-serif;color:#4A3322}
+#boot-title{margin:0;position:relative;z-index:2;font-weight:600;font-size:46px;line-height:1;letter-spacing:-.04em;text-align:center;animation:boot-in .7s cubic-bezier(.2,.8,.2,1) both;transition:opacity .35s,transform .35s}
+#boot-title span{color:#2672CF}
+@keyframes boot-in{from{opacity:0;transform:translateY(14px)}}
+#boot.thrown #boot-title{opacity:0;transform:translateY(12px)}
+#boot-text:empty{display:none}
+#boot-text{margin:0;font-weight:500;font-size:16px;opacity:.65;font-variant-numeric:tabular-nums;transition:opacity .3s}
+#boot-stage{position:relative;width:240px;height:320px}
+#boot .sniff-load{position:absolute;left:28px;top:0;overflow:visible;transition:opacity .45s ease,transform .55s cubic-bezier(.5,0,.75,0)}
+#boot.thrown .sniff-load{opacity:0;transform:scale(.5)}
+#boot-level{transition:transform 1.1s cubic-bezier(.3,1.2,.4,1)}
+.sniff-load .wave{animation:wave 2.6s linear infinite}
+.sniff-load .wave.back{animation-duration:4.2s;animation-direction:reverse;transform:translateY(-8px)}
+@keyframes wave{from{translate:0 0}to{translate:-240px 0}}
+.sniff-load .mascot{transform-box:fill-box;transform-origin:50% 100%;animation:sniff-sway 4.8s ease-in-out infinite}
+@keyframes sniff-sway{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg) translateY(-6px)}}
+.sniff-load .shadow{transform-box:fill-box;transform-origin:center;animation:shadow 4.8s ease-in-out infinite}
+@keyframes shadow{50%{transform:scaleX(.9);opacity:.8}}
+.sniff-load .pupils{animation:look 4.8s ease-in-out infinite}
+@keyframes look{0%,100%{transform:translate(-4px,-10px)}50%{transform:translate(5px,-12px)}}
+.sniff-load .eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.2s infinite}
+@keyframes blink{0%,46%,52%,100%{transform:scaleY(1)}49%{transform:scaleY(.1)}}
+.sniff-load .nose{transform-box:fill-box;transform-origin:center;animation:sniffnose 1.6s ease-in-out infinite}
+@keyframes sniffnose{0%,60%,100%{transform:scale(1)}70%{transform:scale(1.18,.86)}80%{transform:scale(1)}88%{transform:scale(1.14,.9)}}
+.trail{stroke-dasharray:38 100;stroke-dashoffset:38;opacity:0;animation:scent 3.6s cubic-bezier(.4,.1,.35,1) infinite}
+.t2{animation-delay:1.2s}.t3{animation-delay:2.4s}
+@keyframes scent{0%{stroke-dashoffset:38;opacity:0}15%{opacity:1}75%{opacity:.9}100%{stroke-dashoffset:-100;opacity:0}}
+.puff{opacity:0;transform-box:fill-box;transform-origin:center;animation:puff 3.6s ease-out infinite}
+.p2{animation-delay:1.2s}.p3{animation-delay:2.4s}
+@keyframes puff{0%{opacity:0;transform:translateY(20px) scale(.4)}25%{opacity:1}100%{opacity:0;transform:translateY(-190px) scale(1.2)}}
+#boot.done .mascot{animation:hop .7s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes hop{0%{transform:none}35%{transform:translateY(-34px) rotate(-4deg) scale(1.03,.98)}70%{transform:translateY(0) scale(1.05,.95)}100%{transform:none}}
+#boot.done .eyes{animation:happy .7s ease both}
+@keyframes happy{30%,80%{transform:scaleY(.25)}100%{transform:scaleY(1)}}
+#boot.done .trail{animation-duration:1.4s}
+#boot.thrown{background:transparent;pointer-events:none}
+#boot.thrown #boot-text{opacity:0}
+@media (prefers-reduced-motion:reduce){#boot *{animation:none!important}.trail{stroke-dasharray:none;opacity:.8}#boot-level{transition:none!important}}
+body.ready #boot{pointer-events:none}

@@ -1,48 +1,71 @@
-# Selaras Wangi
+# Dupedia
 
-A focused perfume matcher prototype for discovering Indonesian fragrances by comparing a perfume someone is considering with perfumes they already love.
+Thinking of buying a perfume? Tell Dupedia which one, plus up to five perfumes you already love. It tells you how close it is to your taste, what it shares with your favorites, and what's new to you.
 
-## Open the prototype
+## How it works
 
-Open `index.html` in a browser. The first search uses the local production catalog at `data/app/catalog.js`; product images and purchase links point to their listed sources.
+1. **Pick the perfume you're considering.** Search by name, house or note.
+2. **Add up to five you love.**
+3. **See your match.** A percentage, the favorite it's closest to, the notes you'll recognize, the notes that are new, and up to two alternatives that fit you even better.
 
-## Catalog files
+Everything runs in the browser. There are no accounts and no server: the site is plain static files.
 
-- `data/cariparfum/perfumes.json` is the imported source catalog used for review.
-- `data/dadidupe/perfumes.json` contains factual fields from the public Indonesian catalog; `merge-review.json` records additions, duplicates, disagreements and exclusions.
-- `data/femaledaily/` contains the CSV extraction, Indonesian brand provenance, public-page verification and merge report.
-- `data/kaggle-indonesian/` contains the user-selected CSV, normalized records, licensing attribution and merge report.
-- `data/app/catalog.json` is the readable app dataset.
-- `data/app/catalog.min.json` and `data/app/catalog.js` are compact app versions.
-- `scripts/import-cariparfum.mjs` refreshes the review import.
-- `scripts/import-dadidupe.py` extracts downloaded public catalog pages; see `data/dadidupe/README.md` for refresh commands.
-- `scripts/import-femaledaily.py` extracts explicitly labeled notes from Wangi's Female Daily CSV; see `data/femaledaily/README.md` for refresh and verification commands.
-- `scripts/import-kaggle-indonesian.py` imports Zhafran Kuncoro's Indonesian Parfume CSV; see `data/kaggle-indonesian/README.md` for refresh commands and CC BY-SA 4.0 attribution.
-- `scripts/build-app-catalog.mjs` prepares the app dataset after reviewing an import.
-- `scripts/build-cariparfum-preview.mjs` rebuilds the catalog review page.
+## Run it locally
 
-The database and generated bottle images are kept in this repository so the prototype can be continued on another device. Use a private GitHub repository for this project.
+You need [Node.js](https://nodejs.org) 18 or newer.
 
-The current app catalog contains 1,774 perfumes across 205 brands: 906 original CariParfum entries, 236 Dadidupe additions, 60 Female Daily additions and 572 Kaggle additions. The Female Daily notes and identities are checked against public product pages before merging; the Kaggle import uses explicit fields in the selected Indonesian-brand dataset. Existing note pyramids are preserved. Incoming duplicates, incomplete note dictionaries and ambiguous names remain in the review reports. Linear note lists retain their own `notes.linear` field and contribute to the same matching profile without inventing a pyramid. Images are optional; 590 entries use the current unavailable-image state until a bottle placeholder is designed. Kaggle prices are source snapshots from 2025-09-15.
+```bash
+npm install
+npm run dev      # start the dev server, then open the address it prints
+npm run build    # production build in dist/
+npm run preview  # preview the production build
+```
 
-## Current prototype state
+## Deploy
 
-The first question searches the imported catalog. The second question collects two to five loved perfumes around the selected perfume. With one favorite, the user is prompted to add another; comparison is available from two favorites.
+The repo publishes itself to GitHub Pages. The workflow in `.github/workflows/deploy.yml` builds and deploys on every push to the main branch.
 
-**See comparison** starts the calm “Comparing notes” orbit. Every selected favorite settles into the result collection and stays visible. The transition takes about 3.9 seconds, followed by a 1.1-second reveal; reduced-motion users see the result immediately. Timing is presentation, not AI processing or a remote request. Desktop uses the large selected perfume and collection on the left, with the result on the right, fitting without scrolling at the checked sizes. Mobile stacks and scrolls. The individual comparison dropdown is removed.
+First-time setup: in the repo, go to **Settings → Pages** and set **Source** to **GitHub Actions**.
 
-`matching.js` now builds one profile from all unique favorites. Each perfume's binary note vector is normalized to unit length, then the vectors are averaged. The selected perfume's normalized vector is compared with that centroid using cosine similarity. Each perfume has equal vector magnitude before averaging; recurring notes accumulate support. Exact duplicate perfume IDs and the candidate itself are excluded. Missing note lists are omitted transparently; at least two contributing favorites and candidate notes are needed for a score. Cedar wood / cedarwood share an explicit alias, while rose / red rose and musk / white musk stay distinct.
+Netlify and Vercel also work: build command `npm run build`, output folder `dist`.
 
-The result displays cosine similarity multiplied by 100 and rounded to the nearest whole number, labeled “profile overlap” above and slightly to the right of the selected bottle. The main title retains High / Medium / Low overlap using the provisional cosine boundaries .70 / .35. Full precision is retained in the calculation. Missing data has no percentage; genuine zero overlap shows 0%. Category boundaries still require calibration with wearer feedback. This is a listed-note alignment score, not a calibrated likelihood of liking or verified sensory similarity. Evidence count and similarity score are separate. Adding more favorites can lower the score.
+## How matching works
 
-All result copy uses fixed templates with actual note counts. Shared with your favorites previews up to four notes, ordered by recurrence, then profile weight, then canonical key. New in this perfume previews up to four notes absent from the profile, in alphabetical order. Remaining counts are shown; previews do not imply ingredient concentration or note intensity. Editing favorites rebuilds the full profile. Changing target preserves favorites except the new target itself.
+Content-based matching, the standard approach in perfume recommenders:
 
-Run the algorithm checks with `node tests/matching.test.cjs`.
-Run catalog preservation and import checks with `node --test tests/catalog.test.cjs tests/matching.test.cjs`.
-Run CSV extraction checks with `python3 -m unittest discover -s tests -p 'test_*.py'`.
+1. **Notes:** TF-IDF over each perfume's notes, so rare notes count more than common ones. Heart and base notes weigh more than top notes.
+2. **Related notes:** note embeddings learned from which notes appear together across the database (PPMI + SVD), so a lemon perfume partly matches a bergamot one.
+3. **Families:** smoothed along the fragrance wheel, so neighboring families earn partial credit.
+4. **Character:** tags such as warm, fresh or sensual.
 
-The prototype supports keyboard search, narrow screens, reduced motion, missing-image fallbacks, and empty search results. Decorative orbit assets use lightweight WebP copies; the original PNGs remain in the repository.
+Each perfume is scored against the average of your favorites and against your single closest favorite (50/50), then ranked against every perfume in the database. The match percentage is that rank. Weights: notes 45%, families 35%, character 20% (renormalized when a perfume has no family or character data).
 
-## Repository note
+The result text comes from rule-based templates, not AI (see `buildText` in `src/app.js`).
 
-This project is being published to a new repository with a clean initial commit. The previous local site history remains on the `legacy-site` branch.
+## Project layout
+
+```
+index.html              page shell, loading screen and main scene
+src/main.js             startup: loads data, preloads photos, plays the loading animation
+src/app.js              the app: floating scene, search, matching and results
+src/style.css           shared styles
+public/data/dupedia.json  compact perfume data the app loads (1,774 perfumes)
+public/favicon.svg      Sniff, the mascot
+scripts/build-data.py   rebuilds public/data/dupedia.json from the source database
+```
+
+## Data
+
+The app loads `public/data/dupedia.json`, which is public: anyone visiting the site can download it.
+
+The full source database (`data/perfume-database.json`) is not in this repo. To rebuild the app data after editing it, put the file in `data/` and run (needs Python 3 and numpy):
+
+```bash
+npm run data
+```
+
+Perfume photos load from the image links in the data. Make sure you have the rights to show them before promoting the site.
+
+## Credits
+
+Part of the perfume data comes from the Kaggle dataset **Indonesian Parfume**, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Data derived from it is shared under the same license.
