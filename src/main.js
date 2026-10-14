@@ -8,8 +8,16 @@ const scene = host.firstElementChild;
 // extra width or height is added to the scene so it fills the screen edge to edge.
 // The 1440×900 composition stays centered inside it.
 function fit() {
-  const s = Math.min(window.innerWidth / 1440, window.innerHeight / 900);
+  // Never shrink below this, even on a narrow phone: below it the UI text
+  // (search box, labels, pills) becomes unreadably small. The decorative
+  // background is free to crop at the edges instead (see #wrap overflow:hidden).
+  const MIN_SCALE = 0.55;
+  const s = Math.max(Math.min(window.innerWidth / 1440, window.innerHeight / 900), MIN_SCALE);
   const w = Math.ceil(window.innerWidth / s), h = Math.ceil(window.innerHeight / s);
+  // Phones and portrait tablets: the scene is cropped at the sides, so the UI gets
+  // a compact layout (see body.narrow in style.css). --dw is the visible width.
+  document.body.classList.toggle('narrow', w < 1100 || window.innerWidth < window.innerHeight * 0.9);
+  document.documentElement.style.setProperty('--dw', w + 'px');
   host.style.width = scene.style.width = w + 'px';
   host.style.height = scene.style.height = h + 'px';
   host.style.transform = 'scale(' + s + ')';

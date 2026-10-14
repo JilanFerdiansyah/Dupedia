@@ -49,7 +49,7 @@ index.html              page shell, loading screen and main scene
 src/main.js             startup: loads data, preloads photos, plays the loading animation
 src/app.js              the app: floating scene, search, matching and results
 src/style.css           shared styles
-public/data/dupedia.json  compact perfume data the app loads (1,774 perfumes)
+public/data/dupedia.json  compact perfume data the app loads (2,000 perfumes)
 public/favicon.svg      Sniff, the mascot
 scripts/build-data.py   rebuilds public/data/dupedia.json from the source database
 ```
@@ -69,3 +69,5 @@ Perfume photos load from the image links in the data. Make sure you have the rig
 ## Credits
 
 Part of the perfume data comes from the Kaggle dataset **Indonesian Parfume**, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Data derived from it is shared under the same license.
+
+About 230 international perfumes (Nasomatto, Zoologist, By Kilian and others) come from [PerfumAPI](https://github.com/seccaz/PerfumAPI), which collects data from Fragrantica for educational use. Their bottle photos load from Fragrantica's image server. Their fragrance families were inferred from their notes, so they are less precise than the rest of the data.

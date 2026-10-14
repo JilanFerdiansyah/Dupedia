@@ -117,6 +117,25 @@ function wordsHTML(t){return t.split(' ').map(function(w){return '<span class="w
 // Offset of the centered 1440×900 composition inside the full-window scene.
 function frame(self){return{x:(self.root.clientWidth-1440)/2,y:(self.root.clientHeight-900)/2};}
 const EASE='cubic-bezier(.2,.8,.2,1)',SPRING='cubic-bezier(.3,1.35,.45,1)';
+// Phones get a compact layout: body.narrow is set by fit() in main.js.
+function narrow(){return document.body.classList.contains('narrow');}
+// Step 3 on a phone: one scrollable column under the headline, with larger text.
+function narrowResult(self,res,q,hb0){
+  const W=Math.min(self.root.clientWidth-60,760),Z=1.7,top=Math.round(hb0.y+hb0.h/2+hb0.dy+30);
+  res.removeAttribute('data-frame');
+  res.style.cssText+=';left:'+Math.round((self.root.clientWidth-W)/2)+'px;top:'+top+'px;width:'+W+'px;height:'+(self.root.clientHeight-top)+'px;overflow:hidden auto;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:34px;padding:24px 0 170px;box-sizing:border-box;scrollbar-width:none;-webkit-overflow-scrolling:touch';
+  const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:40px;flex:none';
+  res.insertBefore(row,res.firstChild);row.appendChild(q('hero'));row.appendChild(q('badge'));
+  [q('hero'),q('badge')].forEach(function(el){el.style.position='relative';el.style.left='auto';el.style.top='auto';el.style.flex='none';});
+  q('hero').style.width='200px';q('hero').style.height='268px';
+  q('num').nextSibling.style.fontSize='22px';
+  const notes=q('n1').parentNode;
+  [q('score'),notes,q('acts'),q('foot')].forEach(function(el){el.style.position='relative';el.style.left='auto';el.style.right='auto';el.style.top='auto';el.style.flex='none';el.style.zoom=Z;el.style.width=(W/Z)+'px';});
+  notes.style.flexDirection='column';notes.style.alignItems='stretch';notes.style.gap='14px';
+  ['n1','n2','n3'].forEach(function(n){q(n).style.minHeight='0';q(n).style.flex='none';});
+  const a=q('alts');a.style.position='relative';a.style.left='auto';a.style.top='auto';a.style.flex='none';a.style.zoom=1.5;a.style.width=(W/1.5)+'px';
+  q('acts').style.flexWrap='wrap';q('acts').style.gap='18px';
+}
 const Step2={
   rootPt:function(self,el){const rr=self.root.getBoundingClientRect(),sc=rr.width/(self.root.clientWidth||rr.width)||1,b=el.getBoundingClientRect();return{x:(b.left+b.width/2-rr.left)/sc,y:(b.top+b.height/2-rr.top)/sc,w:b.width/sc,h:b.height/sc,sc:sc};},
   setHead:function(self,l1,l2){self.h1.innerHTML=wordsHTML(l1)+'<br><span style="position:relative;display:inline-block">'+wordsHTML(l2)+UL+'</span>';},
@@ -141,7 +160,7 @@ const Step2={
     const p=self.chosen,k=PICKS.indexOf(p);
     // 1. lift the chosen card from the search note to the top-left
     const from=Step2.rootPt(self,self.note);
-    const pin=document.createElement('div');pin.setAttribute('data-nodrag','1');
+    const pin=document.createElement('div');pin.setAttribute('data-nodrag','1');pin.className='pin';
     pin.style.cssText='position:absolute;left:64px;top:70px;width:300px;height:250px;z-index:2100;pointer-events:auto';
     const nt=(NOTES[k]||'').split(',').map(function(s){return s.trim();}).filter(Boolean).slice(0,3).join(' · ');
     pin.innerHTML='<div style="position:absolute;left:0;top:0;width:150px;height:201px;transform:rotate(-6deg);filter:drop-shadow(0 14px 16px rgba(74,51,34,.24))">'+card('pin',k)+'<i class="tape" style="left:50%;top:-8px"></i></div>'+
@@ -310,6 +329,7 @@ const Step3={
     tk.innerHTML='<div style="display:flex;align-items:center;gap:18px"><span data-t="c" style="width:64px;height:77px;filter:drop-shadow(0 6px 8px rgba(74,51,34,.22))">'+thumb(cons)+'</span><span style="font-size:15px;font-weight:600;opacity:.6">vs</span><span style="display:flex;gap:10px">'+fk.map(function(k){return '<span data-t="f" style="width:50px;height:60px;filter:drop-shadow(0 4px 6px rgba(74,51,34,.2))">'+thumb(k)+'</span>';}).join('')+'</span></div>'+
       '<div style="display:flex;align-items:center;gap:12px;height:30px"><span class="spin" style="width:28px;height:28px;animation-duration:2.4s">'+flower('blue')+'</span><span data-t="s" style="font-size:21px;font-weight:500;letter-spacing:-.01em;display:inline-block"></span></div>'+
       '<div data-t="n" style="font-size:14px;font-weight:500;opacity:.6;font-variant-numeric:tabular-nums">&nbsp;</div>';
+    if(narrow()){const Z=1.7;tk.style.zoom=Z;tk.style.left=(fo.x/Z)+'px';tk.style.top=((470+fo.y)/Z)+'px';tk.style.width=(1440/Z)+'px';}
     self.root.appendChild(tk);
     const st=tk.querySelector('[data-t="s"]'),cn=tk.querySelector('[data-t="n"]'),fs=[].slice.call(tk.querySelectorAll('[data-t="f"]'));
     const pop=function(el,d){el.animate([{transform:'translateY(18px) scale(.7)',opacity:0},{transform:'none',opacity:1}],{duration:480,delay:d,easing:SPRING,fill:'backwards'});};
@@ -326,6 +346,7 @@ const Step3={
   },
   reveal:function(self,cons,fk,m,T){
     self.field.style.opacity='.08';
+    const hb0=Step2.rootPt(self,self.h1),nar=narrow();hb0.dy=-150-(parseFloat((self.stage.style.transform.match(/-?[\d.]+/)||[0])[0])||0);
     self.stage.style.transform='translateY(-150px)';
     // 2. headline + pill
     Step2.swapHead(self,T.verdict[0],T.verdict[1],null,74);
@@ -368,7 +389,8 @@ const Step3={
     // hero flies in from the pinned card (or the search note)
     const src=self.pin?self.pin.firstChild:self.note,from=Step2.rootPt(self,src),hero=q('hero');
     const fr=frame(self),tx=from.x-(fr.x+92+118),ty=from.y-(fr.y+150+158),sc0=from.w/236;
-    hero.animate([{transform:'translate('+tx+'px,'+ty+'px) scale('+sc0+') rotate(-6deg)'},{transform:'translate('+tx*.4+'px,'+(ty*.4-50)+'px) scale(1.08) rotate(3deg)',offset:.5},{transform:'rotate(-5deg)'}],{duration:900,easing:EASE});
+    if(nar){narrowResult(self,res,q,hb0);hero.animate([{transform:'translateY(30px) scale(.8) rotate(-5deg)',opacity:0},{transform:'rotate(-5deg)',opacity:1}],{duration:600,easing:SPRING,fill:'backwards'});}
+    else hero.animate([{transform:'translate('+tx+'px,'+ty+'px) scale('+sc0+') rotate(-6deg)'},{transform:'translate('+tx*.4+'px,'+(ty*.4-50)+'px) scale(1.08) rotate(3deg)',offset:.5},{transform:'rotate(-5deg)'}],{duration:900,easing:EASE});
     if(self.pin){const pn=self.pin;pn.animate([{opacity:1},{opacity:0}],{duration:200,fill:'forwards'}).onfinish=function(){pn.remove();};self.pin=null;}
     // pop the rest in
     const pop=function(el,d,rot){if(!el)return;el.animate([{transform:'translateY(26px) scale(.85) rotate('+(rot||0)+'deg)',opacity:0},{transform:el.style.transform||'none',opacity:1}],{duration:560,delay:d,easing:SPRING,fill:'backwards'});};
