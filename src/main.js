@@ -30,6 +30,14 @@ function fit() {
 window.addEventListener('resize', fit);
 fit();
 
+// The scene is scaled with a transform, so its layout box is bigger than the
+// screen. Tapping the search box would scroll #wrap to it and shift the whole
+// scene up, so keep #wrap pinned in place.
+const wrap = host.parentElement;
+wrap.addEventListener('scroll', () => {
+  if (wrap.scrollTop || wrap.scrollLeft) wrap.scrollTop = wrap.scrollLeft = 0;
+});
+
 const boot = document.getElementById('boot');
 const bootText = document.getElementById('boot-text');
 const liquid = document.getElementById('boot-level');

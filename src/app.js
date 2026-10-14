@@ -119,22 +119,34 @@ function frame(self){return{x:(self.root.clientWidth-1440)/2,y:(self.root.client
 const EASE='cubic-bezier(.2,.8,.2,1)',SPRING='cubic-bezier(.3,1.35,.45,1)';
 // Phones get a compact layout: body.narrow is set by fit() in main.js.
 function narrow(){return document.body.classList.contains('narrow');}
-// Step 3 on a phone: one scrollable column under the headline, with larger text.
-function narrowResult(self,res,q,hb0){
-  const W=Math.min(self.root.clientWidth-60,760),Z=1.7,top=Math.round(hb0.y+hb0.h/2+hb0.dy+30);
+// Step 3 on a phone: the whole result is one page that scrolls, headline included,
+// centered on screen when it fits.
+function narrowResult(self,res,q,T){
+  const W=Math.min(self.root.clientWidth-60,760),Z=1.7;
   res.removeAttribute('data-frame');
-  res.style.cssText+=';left:'+Math.round((self.root.clientWidth-W)/2)+'px;top:'+top+'px;width:'+W+'px;height:'+(self.root.clientHeight-top)+'px;overflow:hidden auto;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:34px;padding:24px 0 170px;box-sizing:border-box;scrollbar-width:none;-webkit-overflow-scrolling:touch';
+  res.style.cssText+=';left:0;top:0;width:'+self.root.clientWidth+'px;height:'+self.root.clientHeight+'px;overflow:hidden auto;pointer-events:auto;scrollbar-width:none;overscroll-behavior:contain';
+  const col=document.createElement('div');
+  col.style.cssText='min-height:100%;width:'+W+'px;margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:110px 0 190px;box-sizing:border-box';
+  const head=document.createElement('div');head.setAttribute('data-r','head');
+  head.style.cssText='display:flex;flex-direction:column;align-items:center;gap:22px;flex:none';
+  head.innerHTML='<span style="background:#4A3322;color:#FBF6E9;font-weight:500;font-size:24px;padding:12px 24px;border-radius:12px">Step 3 of 3</span>'+
+    '<h1 style="margin:0;font-family:Rubik,sans-serif;font-weight:600;font-size:52px;line-height:.98;letter-spacing:-.04em;text-align:center;color:#4A3322">'+wordsHTML(T.verdict[0])+'<br><span style="position:relative;display:inline-block">'+wordsHTML(T.verdict[1])+UL+'</span></h1>';
   const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:40px;flex:none';
-  res.insertBefore(row,res.firstChild);row.appendChild(q('hero'));row.appendChild(q('badge'));
+  res.appendChild(col);col.appendChild(head);col.appendChild(row);
+  row.appendChild(q('hero'));row.appendChild(q('badge'));
   [q('hero'),q('badge')].forEach(function(el){el.style.position='relative';el.style.left='auto';el.style.top='auto';el.style.flex='none';});
   q('hero').style.width='200px';q('hero').style.height='268px';
   q('num').nextSibling.style.fontSize='22px';
-  const notes=q('n1').parentNode;
-  [q('score'),notes,q('acts'),q('foot')].forEach(function(el){el.style.position='relative';el.style.left='auto';el.style.right='auto';el.style.top='auto';el.style.flex='none';el.style.zoom=Z;el.style.width=(W/Z)+'px';});
+  const notes=q('n1').parentNode,rest=[q('score'),notes,q('alts'),q('acts'),q('foot')];
+  rest.forEach(function(el){el.style.position='relative';el.style.left='auto';el.style.right='auto';el.style.top='auto';el.style.flex='none';el.style.zoom=Z;el.style.width=(W/Z)+'px';});
   notes.style.flexDirection='column';notes.style.alignItems='stretch';notes.style.gap='14px';
   ['n1','n2','n3'].forEach(function(n){q(n).style.minHeight='0';q(n).style.flex='none';});
-  const a=q('alts');a.style.position='relative';a.style.left='auto';a.style.top='auto';a.style.flex='none';a.style.zoom=1.5;a.style.width=(W/1.5)+'px';
+  q('alts').style.zoom=1.5;q('alts').style.width=(W/1.5)+'px';
   q('acts').style.flexWrap='wrap';q('acts').style.gap='18px';
+  rest.forEach(function(el){col.appendChild(el);});
+  // the page's own headline would sit on top of the scrolling result, so hide it
+  self.head.style.transition='opacity .25s';self.head.style.opacity='0';
+  head.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:500,delay:300,easing:SPRING,fill:'backwards'});
 }
 const Step2={
   rootPt:function(self,el){const rr=self.root.getBoundingClientRect(),sc=rr.width/(self.root.clientWidth||rr.width)||1,b=el.getBoundingClientRect();return{x:(b.left+b.width/2-rr.left)/sc,y:(b.top+b.height/2-rr.top)/sc,w:b.width/sc,h:b.height/sc,sc:sc};},
@@ -346,7 +358,7 @@ const Step3={
   },
   reveal:function(self,cons,fk,m,T){
     self.field.style.opacity='.08';
-    const hb0=Step2.rootPt(self,self.h1),nar=narrow();hb0.dy=-150-(parseFloat((self.stage.style.transform.match(/-?[\d.]+/)||[0])[0])||0);
+    const nar=narrow();
     self.stage.style.transform='translateY(-150px)';
     // 2. headline + pill
     Step2.swapHead(self,T.verdict[0],T.verdict[1],null,74);
@@ -389,7 +401,7 @@ const Step3={
     // hero flies in from the pinned card (or the search note)
     const src=self.pin?self.pin.firstChild:self.note,from=Step2.rootPt(self,src),hero=q('hero');
     const fr=frame(self),tx=from.x-(fr.x+92+118),ty=from.y-(fr.y+150+158),sc0=from.w/236;
-    if(nar){narrowResult(self,res,q,hb0);hero.animate([{transform:'translateY(30px) scale(.8) rotate(-5deg)',opacity:0},{transform:'rotate(-5deg)',opacity:1}],{duration:600,easing:SPRING,fill:'backwards'});}
+    if(nar){narrowResult(self,res,q,T);hero.animate([{transform:'translateY(30px) scale(.8) rotate(-5deg)',opacity:0},{transform:'rotate(-5deg)',opacity:1}],{duration:600,easing:SPRING,fill:'backwards'});}
     else hero.animate([{transform:'translate('+tx+'px,'+ty+'px) scale('+sc0+') rotate(-6deg)'},{transform:'translate('+tx*.4+'px,'+(ty*.4-50)+'px) scale(1.08) rotate(3deg)',offset:.5},{transform:'rotate(-5deg)'}],{duration:900,easing:EASE});
     if(self.pin){const pn=self.pin;pn.animate([{opacity:1},{opacity:0}],{duration:200,fill:'forwards'}).onfinish=function(){pn.remove();};self.pin=null;}
     // pop the rest in
@@ -402,7 +414,7 @@ const Step3={
     res.querySelector('[data-a="reset"]').addEventListener('click',function(e){e.preventDefault();Step3.leave(self,true);});
   },
   leave:function(self,reset){
-    const res=self.res;self.res=null;
+    const res=self.res;self.res=null;if(self.head)self.head.style.opacity='';
     res.animate([{opacity:1,transform:'none'},{opacity:0,transform:'translateY(30px)'}],{duration:320,easing:'ease-in',fill:'forwards'}).onfinish=function(){res.remove();};
     self.box.style.transition='opacity 420ms ease-out 200ms, translate 520ms '+SPRING+' 200ms';self.box.style.opacity='1';self.box.style.translate='0 0';self.box.style.pointerEvents='auto';
     self.go.style.transition='none';self.go.style.opacity='1';self.go.style.translate='0 0';self.go.style.pointerEvents='auto';self.go.style.display='none';
