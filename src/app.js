@@ -131,7 +131,7 @@ function narrowResult(self,res,q,T){
   col.style.cssText='min-height:100%;width:'+W+'px;margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:110px 0 190px;box-sizing:border-box';
   const head=document.createElement('div');head.setAttribute('data-r','head');
   head.style.cssText='display:flex;flex-direction:column;align-items:center;gap:22px;flex:none';
-  head.innerHTML='<span style="background:#4A3322;color:#FBF6E9;font-weight:500;font-size:24px;padding:12px 24px;border-radius:12px">'+road(3)+'</span>'+
+  head.innerHTML='<span class="stepbar" style="font-weight:500;font-size:24px;padding:10px 22px;border-radius:999px">'+road(3)+'</span>'+
     '<h1 style="margin:0;font-family:Rubik,sans-serif;font-weight:600;font-size:52px;line-height:.98;letter-spacing:-.04em;text-align:center;color:#4A3322">'+wordsHTML(T.verdict[0])+'<br><span style="position:relative;display:inline-block">'+wordsHTML(T.verdict[1])+UL+'</span></h1>';
   const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:40px;flex:none';
   res.appendChild(col);col.appendChild(head);col.appendChild(row);
