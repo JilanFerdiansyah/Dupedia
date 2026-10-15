@@ -1,4 +1,4 @@
-import { Component, setData, heroImages, useFallback } from './app.js';
+import { Component, setData, heroImages, useFallback, setThumb } from './app.js';
 
 const base = (import.meta.env && import.meta.env.BASE_URL) || './';
 const host = document.getElementById('app-root');
@@ -60,6 +60,30 @@ function preload(url, ms) {
   });
 }
 
+// Load a photo and keep a small copy (longest side `max` px). The floating cards
+// are small, and full-size photos make phones flicker as the cards move.
+// Resolves to a blob URL, or null if the photo can't be read (then the original is used).
+function shrink(url, max, ms) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    const t = setTimeout(() => done(null), ms);
+    function done(v) { clearTimeout(t); img.onload = img.onerror = null; resolve(v); }
+    img.onload = () => {
+      try {
+        const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.naturalWidth * s));
+        c.height = Math.max(1, Math.round(img.naturalHeight * s));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob((b) => done(b ? URL.createObjectURL(b) : null), 'image/webp', 0.85);
+      } catch (e) { done(null); }
+    };
+    img.onerror = () => done(null);
+    img.src = url;
+  });
+}
+
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const started = performance.now();
@@ -73,7 +97,10 @@ fetch(base + 'data/dupedia.json')
     // 1. Sniff fills up as the photos load.
     let n = 0;
     fill(0.08);
-    await Promise.all(list.map(({ k, url }) => preload(url, 4000).then((ok) => {
+    await Promise.all(list.map(({ k, url }) => shrink(url, 512, 4000).then((small) => {
+      if (small) { setThumb(k, small); return true; }
+      return preload(url, 2500);
+    }).then((ok) => {
       if (!ok) useFallback(k);
       n++;
       fill(0.08 + 0.82 * (n / list.length));

@@ -1,7 +1,7 @@
 
 body{margin:0;background:#FBF6E9}
 a{color:#4A3322}a:hover{color:#B8561E}
-.item{position:absolute;left:0;top:0;will-change:transform,opacity;pointer-events:none}
+.item{position:absolute;left:0;top:0;will-change:transform;pointer-events:none;-webkit-backface-visibility:hidden;backface-visibility:hidden;contain:layout paint}
 .mono{font-family:'Geist Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
 .row{display:flex;align-items:center;gap:16px;padding:9px 18px;cursor:pointer;font-family:'Rubik',sans-serif;color:#4A3322;border-top:1px solid rgba(74,51,34,.08)}
 .row:first-child{border-top:0}
@@ -65,7 +65,7 @@ body.ready #boot{pointer-events:none}
 /* Phones: the 1440x900 scene is scaled to at least 0.55 (see fit() in main.js)
    and cropped at the sides, so the UI uses a compact layout that fits --dw. */
 body.narrow [data-ref="setStage"]{gap:64px!important;padding-top:200px!important}
-body.narrow [data-ref="setHead"] h1{font-size:52px!important;max-width:calc(var(--dw) - 40px)}
+body.narrow [data-ref="setHead"] h1,body.narrow [data-ref="setHT"]{font-size:52px!important;max-width:calc(var(--dw) - 40px)}
 body.narrow [data-ref="setHead"]>span{font-size:24px!important;padding:12px 24px!important}
 body.narrow [data-ref="setBox"]{width:min(660px,calc(var(--dw) - 90px))!important}
 body.narrow [data-ref="setNote"]{padding:18px 18px 18px 58px!important}
@@ -86,3 +86,19 @@ body.narrow [data-ref="setSlots"] span[style*="opacity:.75"]{display:none}
 body.narrow [data-ref="setSlots"] span[style*="border-radius:50%"]{width:48px!important;height:48px!important;font-size:32px!important}
 body.narrow [data-ref="setSlots"] span[style*="font-size:12px"]{font-size:20px!important}
 body.narrow .pin>div:last-child{left:100px!important;top:16px!important;zoom:1.6}
+
+/* one-line pitch under the first headline */
+.pitch{margin:2px 0 0;max-width:600px;text-align:center;font-family:Rubik,sans-serif;font-weight:400;font-size:22px;line-height:1.35;color:rgba(74,51,34,.78)}
+body.narrow .pitch{font-size:29px!important;max-width:calc(var(--dw) - 190px)}
+/* 3-step journey in the step pill */
+.rd{display:inline-flex;align-items:center;gap:7px;opacity:.5;white-space:nowrap}
+.rd.done{opacity:.75}
+.rd.on{opacity:1}
+.rd b{display:inline-flex;align-items:center;justify-content:center;width:21px;height:21px;border-radius:50%;background:rgba(251,246,233,.2);font-size:12px;font-weight:600}
+.rd.on b{background:#F8DF63;color:#4A3322}
+.rs{font-style:normal;opacity:.4;margin:0 10px}
+.rd .s{display:none}
+body.narrow .rd .l{display:none}
+body.narrow .rd .s{display:inline}
+body.narrow .rd b{width:30px;height:30px;font-size:17px}
+#boot-text{max-width:300px;text-align:center}

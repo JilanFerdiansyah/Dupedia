@@ -13,6 +13,8 @@ export function deckBack(k){const v=VAR[FAM[k]],o=shapePath(v,0,0,100,134,12),i=
   '<g transform="translate(26 44) scale(.48)"><path d="'+SC+'" fill="#2672CF"/><rect x="34" y="40" width="32" height="38" rx="9" fill="#F5F1E2"/><rect x="38" y="26" width="24" height="16" rx="5" fill="#123C84"/><circle cx="44" cy="56" r="3.4" fill="#123C84"/><circle cx="56" cy="56" r="3.4" fill="#123C84"/></g></svg>';}
 // A photo that failed or timed out falls back to the colored bottle placeholder.
 export function useFallback(k){THUMBS[k]=placeholder(FAM[k]);}
+// Swap in a smaller copy of a photo (made in main.js) so phones don't redraw huge images every frame.
+export function setThumb(k,url){THUMBS[k]=url;}
 export function setData(d){PICKS=d.picks;FAM=d.fam;NOTES=d.notes;PINFO=d.pinfo;DBV=d.dbv;DBN=d.n;SHOP=d.shop||[];PIDX=d.picks.map(function(_,i){return i;});CLEAN=d.clean;HASIMG=d.img.map(Boolean);THUMBS=d.img.map(function(u,i){return u||placeholder(FAM[i]);});}
 
 function rng(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};}
@@ -129,7 +131,7 @@ function narrowResult(self,res,q,T){
   col.style.cssText='min-height:100%;width:'+W+'px;margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:110px 0 190px;box-sizing:border-box';
   const head=document.createElement('div');head.setAttribute('data-r','head');
   head.style.cssText='display:flex;flex-direction:column;align-items:center;gap:22px;flex:none';
-  head.innerHTML='<span style="background:#4A3322;color:#FBF6E9;font-weight:500;font-size:24px;padding:12px 24px;border-radius:12px">Step 3 of 3</span>'+
+  head.innerHTML='<span style="background:#4A3322;color:#FBF6E9;font-weight:500;font-size:24px;padding:12px 24px;border-radius:12px">'+road(3)+'</span>'+
     '<h1 style="margin:0;font-family:Rubik,sans-serif;font-weight:600;font-size:52px;line-height:.98;letter-spacing:-.04em;text-align:center;color:#4A3322">'+wordsHTML(T.verdict[0])+'<br><span style="position:relative;display:inline-block">'+wordsHTML(T.verdict[1])+UL+'</span></h1>';
   const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;justify-content:center;gap:40px;flex:none';
   res.appendChild(col);col.appendChild(head);col.appendChild(row);
@@ -147,6 +149,18 @@ function narrowResult(self,res,q,T){
   // the page's own headline would sit on top of the scrolling result, so hide it
   self.head.style.transition='opacity .25s';self.head.style.opacity='0';
   head.animate([{opacity:0,transform:'translateY(16px)'},{opacity:1,transform:'none'}],{duration:500,delay:300,easing:SPRING,fill:'backwards'});
+}
+// The 3-step journey shown in the pill: current step highlighted, finished steps ticked.
+function road(n){
+  const S=[['Pick a perfume','Pick'],['Add favorites','Favorites'],['Get your match','Match']];
+  return S.map(function(x,i){const k=i+1;return '<span class="rd'+(k===n?' on':k<n?' done':'')+'"><b>'+(k<n?'✓':k)+'</b><span class="l">'+x[0]+'</span><span class="s">'+x[1]+'</span></span>';}).join('<i class="rs">›</i>');
+}
+// The one-line pitch under the headline only shows on the first step.
+function showSub(self,on){
+  if(!self.sub)return;
+  self.sub.style.transition='opacity .3s';
+  if(on){self.sub.style.display='';requestAnimationFrame(function(){self.sub.style.opacity='1';});}
+  else{self.sub.style.opacity='0';setTimeout(function(){if(self.sub.style.opacity==='0')self.sub.style.display='none';},300);}
 }
 const Step2={
   rootPt:function(self,el){const rr=self.root.getBoundingClientRect(),sc=rr.width/(self.root.clientWidth||rr.width)||1,b=el.getBoundingClientRect();return{x:(b.left+b.width/2-rr.left)/sc,y:(b.top+b.height/2-rr.top)/sc,w:b.width/sc,h:b.height/sc,sc:sc};},
@@ -191,8 +205,8 @@ const Step2={
     self.sel.style.display='none';self.speed=5;
     self.field.style.transition='opacity 900ms '+EASE;self.field.style.opacity='.22';
     // 3. headline + pill
-    Step2.swapHead(self,'Now, up to five','you love.');
-    setTimeout(function(){Step2.flip(self.pill,'',function(){self.pill.textContent='Step 2 of 3';});},180);
+    Step2.swapHead(self,'Now, up to five','you love.');showSub(self,false);
+    setTimeout(function(){Step2.flip(self.pill,'',function(){self.pill.innerHTML=road(2);});},180);
     // 4. lift the stage so slots fit, flip the search note
     self.stage.style.transition='transform 900ms '+EASE;self.stage.style.transform='translateY(-96px)';
     setTimeout(function(){Step2.flip(self.note,'rotate(-1.2deg)',function(){self.inp.value='';self.inp.placeholder='Add a perfume you love';});},280);
@@ -239,8 +253,8 @@ const Step2={
     setTimeout(function(){self.slots.style.display='none';self.slotEls.forEach(function(s){s.innerHTML='';s.getAnimations().forEach(function(a){a.cancel();});});},520);
     self.stage.style.transform='translateY(0)';
     self.field.style.opacity='1';
-    Step2.swapHead(self,'Which perfume are','you considering?');
-    Step2.flip(self.pill,'',function(){self.pill.textContent='Step 1 of 3';});
+    Step2.swapHead(self,'Which perfume are','you considering?');showSub(self,true);
+    Step2.flip(self.pill,'',function(){self.pill.innerHTML=road(1);});
     setTimeout(function(){Step2.flip(self.note,'rotate(-1.2deg)',function(){self.inp.value='';self.inp.placeholder='Search a name, house or note';});},200);
     self.chosen=null;
   }
@@ -341,7 +355,7 @@ const Step3={
     tk.innerHTML='<div style="display:flex;align-items:center;gap:18px"><span data-t="c" style="width:64px;height:77px;filter:drop-shadow(0 6px 8px rgba(74,51,34,.22))">'+thumb(cons)+'</span><span style="font-size:15px;font-weight:600;opacity:.6">vs</span><span style="display:flex;gap:10px">'+fk.map(function(k){return '<span data-t="f" style="width:50px;height:60px;filter:drop-shadow(0 4px 6px rgba(74,51,34,.2))">'+thumb(k)+'</span>';}).join('')+'</span></div>'+
       '<div style="display:flex;align-items:center;gap:12px;height:30px"><span class="spin" style="width:28px;height:28px;animation-duration:2.4s">'+flower('blue')+'</span><span data-t="s" style="font-size:21px;font-weight:500;letter-spacing:-.01em;display:inline-block"></span></div>'+
       '<div data-t="n" style="font-size:14px;font-weight:500;opacity:.6;font-variant-numeric:tabular-nums">&nbsp;</div>';
-    if(narrow()){const Z=1.7;tk.style.zoom=Z;tk.style.left=(fo.x/Z)+'px';tk.style.top=((470+fo.y)/Z)+'px';tk.style.width=(1440/Z)+'px';}
+    if(narrow()){const Z=1.7,vw=self.root.clientWidth;tk.style.zoom=Z;tk.style.left='0px';tk.style.top=((470+fo.y)/Z)+'px';tk.style.width=(vw/Z)+'px';tk.style.padding='0 24px';tk.style.boxSizing='border-box';tk.style.textAlign='center';const sr=tk.querySelector('[data-t="s"]');sr.parentNode.style.height='auto';sr.parentNode.style.minHeight='30px';sr.style.whiteSpace='normal';sr.style.display='block';}
     self.root.appendChild(tk);
     const st=tk.querySelector('[data-t="s"]'),cn=tk.querySelector('[data-t="n"]'),fs=[].slice.call(tk.querySelectorAll('[data-t="f"]'));
     const pop=function(el,d){el.animate([{transform:'translateY(18px) scale(.7)',opacity:0},{transform:'none',opacity:1}],{duration:480,delay:d,easing:SPRING,fill:'backwards'});};
@@ -362,7 +376,7 @@ const Step3={
     self.stage.style.transform='translateY(-150px)';
     // 2. headline + pill
     Step2.swapHead(self,T.verdict[0],T.verdict[1],null,74);
-    setTimeout(function(){Step2.flip(self.pill,'',function(){self.pill.textContent='Step 3 of 3';});},160);
+    setTimeout(function(){Step2.flip(self.pill,'',function(){self.pill.innerHTML=road(3);});},160);
     // 3. result layer
     const res=document.createElement('div');res.setAttribute('data-nodrag','1');res.setAttribute('data-frame','0');self.res=res;const fo=frame(self);
     res.style.cssText='position:absolute;width:1440px;height:900px;left:'+fo.x+'px;top:'+fo.y+'px;z-index:2200;pointer-events:none;font-family:Rubik,sans-serif;color:#4A3322';
@@ -422,12 +436,12 @@ const Step3={
     self.field.style.opacity='1';self.stage.style.transform='translateY(0)';self.chosen=null;
     if(reset){
       self.favs=[];self.step=1;self.slots.style.display='none';self.slotEls.forEach(function(s){s.innerHTML='';});
-      Step2.swapHead(self,'Which perfume are','you considering?');
-      Step2.flip(self.pill,'',function(){self.pill.textContent='Step 1 of 3';});
+      Step2.swapHead(self,'Which perfume are','you considering?');showSub(self,true);
+      Step2.flip(self.pill,'',function(){self.pill.innerHTML=road(1);});
       self.inp.placeholder='Search a name, house or note';
     }else{
       self.step=4;self.slots.style.display='none';
-      Step2.swapHead(self,'Try another','perfume.');
+      Step2.swapHead(self,'Try another','perfume.');showSub(self,false);
       Step2.flip(self.pill,'',function(){self.pill.textContent='Your '+self.favs.length+' favorite'+(self.favs.length>1?'s are':' is')+' kept';});
       self.inp.placeholder='Search another perfume to test';
     }
@@ -472,7 +486,10 @@ export class Component extends DCLogic{
       this.items.push({el:el,wash:wash,dep:dep,k:0,w:w,h:h,max:max,ci:ci,spin:(r()-.5)*160,dl:ci>=0?ci*22:520+r()*520,p:[Math.cos(th)*rad,y,Math.sin(th)*rad],rot:(r()-.5)*(q<.6?30:44),ph:r()*6.28,sp:.2+r()*.3,op:0});
     }
     wireSearch(this.inp,this.list,this.sel,rowHTML,function(p){self.sel.style.display='none';if(self.step===2)Step2.add(self,p);else if(self.step===4){if(self.favs.indexOf(p)>=0){self.inp.value='';return;}self.chosen=p;self.inp.value='';Step3.go(self);}else if(self.step===1){self.chosen=p;Step2.go(self);}});
-    this.step=1;this.favs=[];this.favId=0;this.h1=this.ht;this.pill=this.pt;this.pill.textContent='Step 1 of 3';
+    this.step=1;this.favs=[];this.favId=0;this.h1=this.ht;this.pill=this.pt;this.pill.innerHTML=road(1);
+    // rotate real examples through the first search box so people know what to type
+    const EX=['Search a name, house or note','Try “HMNS Orgsm”','Try “vanilla” or “oud”','Try “SAFF & Co. SOTB”','Try “Project 1945”'];let exi=0;
+    this.exT=setInterval(function(){if(self.step!==1||self.inp.value)return;exi=(exi+1)%EX.length;self.inp.placeholder=EX[exi];},2600);
     this.slotEls=[].slice.call(this.slots.children);
     Step2.setHead(this,'Which perfume are','you considering?');
     this.sel.querySelector('a').addEventListener('click',function(e){e.preventDefault();Step2.go(self);});
@@ -513,17 +530,21 @@ export class Component extends DCLogic{
           else{const c1=1.7,q=e===0?0:1+(c1+1)*Math.pow(e-1,3)+c1*Math.pow(e-1,2);ss*=q;}
           if(it.ci>=0&&e===0)ss=0;
         }
+        // cards that shrink out of the way of the UI also fade, and are hidden once tiny
+        // (a near-zero card still draws its shadow as a speck that flickers around)
+        const rr=ss/(s||1),vo=rr<.03?0:Math.min(1,(rr-.03)/.32),vs=vo<=0?'0':vo>=1?'':vo.toFixed(2);
+        if(vs!==it.vs){it.vs=vs;it.el.style.opacity=vs;it.el.style.visibility=vo<=0?'hidden':'';}
         it.el.style.transform='translate3d('+(px-it.w/2).toFixed(1)+'px,'+(py-it.h/2).toFixed(1)+'px,0) rotate('+(it.rot+spin+Math.sin(t*it.sp+it.ph)*4).toFixed(2)+'deg) scale('+ss.toFixed(3)+')';
-        it.el.style.zIndex=String(Math.round(d*1000));
+        const zi=Math.round(d*60);if(zi!==it.zi){it.zi=zi;it.el.style.zIndex=String(zi);}
       }
       if(self.intro&&now-self.intro>2600)self.intro=null;
       self.raf=requestAnimationFrame(tick);
     };
     this.raf=requestAnimationFrame(tick);
   }
-  componentWillUnmount(){window.removeEventListener('pointermove',this.look);clearInterval(this.blinkT);cancelAnimationFrame(this.raf);window.removeEventListener('pointermove',this.mv);window.removeEventListener('pointerup',this.up);}
+  componentWillUnmount(){clearInterval(this.exT);window.removeEventListener('pointermove',this.look);clearInterval(this.blinkT);cancelAnimationFrame(this.raf);window.removeEventListener('pointermove',this.mv);window.removeEventListener('pointerup',this.up);}
   renderVals(){
     const s=this;
-    return{setRoot:function(e){if(e)s.root=e;},setField:function(e){if(e)s.field=e;},setHead:function(e){if(e)s.head=e;},setBox:function(e){if(e)s.box=e;},setStage:function(e){if(e)s.stage=e;},setHT:function(e){if(e)s.ht=e;},setPT:function(e){if(e)s.pt=e;},setNote:function(e){if(e)s.note=e;},setSlots:function(e){if(e)s.slots=e;},setGo:function(e){if(e)s.go=e;},setInp:function(e){if(e)s.inp=e;},setList:function(e){if(e)s.list=e;},setSel:function(e){if(e)s.sel=e;}};
+    return{setRoot:function(e){if(e)s.root=e;},setField:function(e){if(e)s.field=e;},setHead:function(e){if(e)s.head=e;},setBox:function(e){if(e)s.box=e;},setStage:function(e){if(e)s.stage=e;},setSub:function(e){if(e)s.sub=e;},setHT:function(e){if(e)s.ht=e;},setPT:function(e){if(e)s.pt=e;},setNote:function(e){if(e)s.note=e;},setSlots:function(e){if(e)s.slots=e;},setGo:function(e){if(e)s.go=e;},setInp:function(e){if(e)s.inp=e;},setList:function(e){if(e)s.list=e;},setSel:function(e){if(e)s.sel=e;}};
   }
 }
